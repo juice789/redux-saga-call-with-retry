@@ -3,7 +3,7 @@ const { runSaga } = require('redux-saga')
 
 const defaultOptions = {
     //fn: fn or array
-    //data: any
+    //args: any
     spread: false,
     label: null,
     retryCount: 5,
@@ -54,7 +54,7 @@ function* callWithRetry(_options) {
 
 function* _caller(options) {
     const { result, timeout } = yield race({
-        result: (Array.isArray(options.data) && options.spread) ? call(options.fn, ...options.data) : call(options.fn, options.data),
+        result: (Array.isArray(options.args) && options.spread) ? call(options.fn, ...options.args) : call(options.fn, options.args),
         timeout: delay(options.timeoutMs)
     })
     if (!timeout) {
