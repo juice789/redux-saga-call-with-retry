@@ -1,5 +1,5 @@
 {
-  "name": "redux-saga-call-with-retry",
+  "name": "@juice789/redux-saga-call-with-retry",
   "version": "1.0.0",
   "description": "redux saga call with retry even indefinitely",
   "main": "index.js",
