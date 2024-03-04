@@ -13,13 +13,13 @@ const defaultOptions = {
     loglevel: 1
 }
 
-function* catchDelay(err, options) {
+function* catchDelay(err, options, retryCount) {
     if (typeof options.delay === 'number') {
         return yield delay(options.delay)
     }
     if (typeof options.delay === 'function') {
-        const delayMs = options.delay(err, options)
-        return yield delay(delayMs)
+        const _delay = yield call(options.delay, err, options, retryCount)
+        return yield delay(_delay)
     }
     throw new Error('bad delay option')
 }
@@ -37,7 +37,7 @@ function* callWithRetry(_options) {
                 const errMsg = [
                     'callWithRetry',
                     options.indefinite && 'indefinite',
-                    options.label || options?.fn?.name,
+                    options.label || options.fn?.name,
                     options.loglevel > 1 && err,
                     options.loglevel > 1 === false && err.message?.substring(0, 200),
                     options.loglevel > 1 === false && err.statusCode
@@ -45,11 +45,11 @@ function* callWithRetry(_options) {
                 if (options.loglevel > 0) {
                     console.log(errMsg)
                 }
-                yield call(catchDelay, err, options)
+                yield call(catchDelay, err, options, i)
             }
         }
     }
-    throw new Error(`callWithRetry (${options.label || options?.fn?.name}) didn't respond or returned an error after ${options.retryCount} times`)
+    throw new Error(`callWithRetry (${options.label || options.fn?.name}) didn't respond or returned an error after ${options.retryCount} times`)
 }
 
 function* _caller(options) {
@@ -60,7 +60,7 @@ function* _caller(options) {
     if (!timeout) {
         return result
     } else {
-        throw new Error(`request timeout (${options.label || options?.fn?.name} ${options.timeoutMs} ms)`)
+        throw new Error(`request timeout (${options.label || options.fn?.name} ${options.timeoutMs} ms)`)
     }
 }
 
