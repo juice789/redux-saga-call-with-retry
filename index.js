@@ -10,8 +10,7 @@ const defaultOptions = {
     indefinite: false,
     timeoutMs: 7500,
     delay: 7500, //number or function
-    loglevel: 1,
-    throwLastErr: false
+    loglevel: 1
 }
 
 function* catchDelay(err, options, retryCount) {
@@ -34,12 +33,12 @@ function* callWithRetry(_options) {
         ...defaultOptions,
         ..._options
     }
-    let lastErr = null
+    const errors = []
     for (let i = 0; i < options.retryCount || options.indefinite; i++) {
         try {
             return yield call(_caller, options)
         } catch (err) {
-            lastErr = err
+            errors.push(err)
             if (i < options.retryCount - 1 || options.indefinite) {
                 const errMsg = [
                     'callWithRetry',
@@ -59,9 +58,9 @@ function* callWithRetry(_options) {
             }
         }
     }
-    throw options.throwLastErr
-        ? lastErr
-        : new Error(`callWithRetry (${options.label || options.fn?.name}) didn't respond or returned an error after ${options.retryCount} times`)
+    const err = new Error(`callWithRetry (${options.label || options.fn?.name}) didn't respond or returned an error after ${options.retryCount} times`)
+    err.errors = errors
+    throw err
 }
 
 function* _caller(options) {
